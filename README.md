@@ -18,6 +18,10 @@ See the [API documentation](https://docs.rs/s2n-quic), [examples](https://github
 [![Dependencies][dependencies-badge]][dependencies-url]
 [![MSRV][msrv-badge]][msrv-url]
 
+
+## Optimization for the reassembler in s2n-quic-core
+_in progress_
+
 ## Installation
 
 `s2n-quic` is available on `crates.io` and can be added to a project like so:

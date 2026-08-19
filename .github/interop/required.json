@@ -569,7 +569,9 @@
       "client",
       "server"
     ],
-    "mvfst": [],
+    "mvfst": [
+      "client"
+    ],
     "neqo": [
       "client",
       "server"
@@ -598,7 +600,9 @@
       "client",
       "server"
     ],
-    "xquic": [],
+    "xquic": [
+      "server"
+    ],
     "go-x-net": [
       "client",
       "server"
@@ -619,7 +623,9 @@
     "kwik": [
       "client"
     ],
-    "lsquic": [],
+    "lsquic": [
+      "server"
+    ],
     "msquic": [],
     "mvfst": [],
     "neqo": [
@@ -757,6 +763,9 @@
     ],
     "haproxy": [
       "server"
+    ],
+    "nginx": [
+      "server"
     ]
   },
   "transfercorruption": {
@@ -840,7 +849,8 @@
       "client"
     ],
     "mvfst": [
-      "client"
+      "client",
+      "server"
     ],
     "neqo": [
       "client",
@@ -894,7 +904,8 @@
       "server"
     ],
     "mvfst": [
-      "client"
+      "client",
+      "server"
     ],
     "neqo": [
       "client",

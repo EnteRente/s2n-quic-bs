@@ -33,7 +33,7 @@ use core::{
 };
 use s2n_codec::DecoderBufferMut;
 use s2n_quic_core::{
-    application::{self, ServerName},
+    application::ServerName,
     connection::{
         error::Error,
         id::{Classification, Generator as _},
@@ -314,7 +314,7 @@ impl<Config: endpoint::Config> ConnectionImpl<Config> {
         }
         self.first_buffered_at = None;
 
-        let mut payload: Vec<u8> = self.packet_buffer.drain(..).collect();
+        let mut payload: Vec<u8> = std::mem::take(&mut self.packet_buffer);
         let buffer = DecoderBufferMut::new(payload.as_mut_slice());
 
         let destination_connection_id = self.path_manager.active_path().local_connection_id;
@@ -872,9 +872,13 @@ impl<Config: endpoint::Config> connection::Trait for ConnectionImpl<Config> {
 
         if let Some((space, _)) = self.space_manager.application_mut() {
             let closed_without_error = matches!(error, connection::Error::Closed { .. });
+            let peer_initiated = matches!(
+                error,
+                connection::Error::Closed { initiator, .. } if initiator.is_remote()
+            );
             space
                 .dc_manager
-                .on_close(closed_without_error, &mut publisher);
+                .on_close(closed_without_error, peer_initiated, &mut publisher);
         }
 
         publisher.on_connection_closed(event::builder::ConnectionClosed { error });
@@ -2288,7 +2292,7 @@ impl<Config: endpoint::Config> connection::Trait for ConnectionImpl<Config> {
         )
     }
 
-    fn application_close(&mut self, error: Option<application::Error>) {
+    fn application_close(&mut self, error: Option<connection::Error>) {
         if self.error.is_err() {
             return;
         }
@@ -2297,7 +2301,11 @@ impl<Config: endpoint::Config> connection::Trait for ConnectionImpl<Config> {
         self.open_registry = None;
 
         if let Some(error) = error {
-            self.error = Err(connection::Error::application(error));
+            self.error = Err(error);
+            // This will put all streams into Reset state and wake all tasks
+            if let Some((space, _)) = self.space_manager.application_mut() {
+                space.stream_manager.close(error);
+            }
         } else {
             // give the connection some time to flush all outstanding streams
             self.state = ConnectionState::Flushing;
